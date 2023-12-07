@@ -18,13 +18,10 @@ type hand struct {
 }
 
 func main() {
-	input, _ := readLines("test2.txt")
+	input, _ := readLines("input.txt")
 	hands := parseInput(input)
 	calculateHands(hands)
 	calculateRank(hands)
-	for _, h := range hands {
-		fmt.Println(h)
-	}
 	fmt.Println(totalWinnings(hands))
 }
 
@@ -38,43 +35,19 @@ func totalWinnings(hands []*hand) int {
 }
 
 func calculateRank(hands []*hand) {
-	scores := []int{}
-	scoreMap := make(map[int][]*hand)
+	sort.Slice(hands, func(i, j int) bool {
+		return compare(hands[i], hands[j])
+	})
 
-	for _, h := range hands {
-		if _, ok := scoreMap[h.score]; !ok {
-			scores = append(scores, h.score)
-		}
-		scoreMap[h.score] = append(scoreMap[h.score], h)
-	}
-	sort.Ints(scores)
-
-	rank := 1
-
-	for s := 0; s < len(scores); s++ {
-		if len(scoreMap[scores[s]]) == 1 { //Single item no sorting needed
-			scoreMap[scores[s]][0].rank = rank
-			rank++
-		}
-		if len(scoreMap[scores[s]]) > 1 { //Multiple items - sorting needed
-			sort.Sort(cardSortedHands(scoreMap[scores[s]]))
-			for j := len(scoreMap[scores[s]]) - 1; j >= 0; j-- { //Reverse !
-				scoreMap[scores[s]][j].rank = rank
-				rank++
-			}
-		}
+	for i := 0; i < len(hands); i++ {
+		hands[i].rank = len(hands) - i
 	}
 }
 
-type cardSortedHands []*hand
+func compare(h1, h2 *hand) bool {
 
-func (h cardSortedHands) Len() int {
-	return len(h)
-}
-
-func (h cardSortedHands) Less(i, j int) bool {
-	hand1Slice := strings.Split(h[i].cards, "")
-	hand2Slice := strings.Split(h[j].cards, "")
+	hand1Slice := strings.Split(h1.cards, "")
+	hand2Slice := strings.Split(h2.cards, "")
 
 	hand1String := strings.Join(hand1Slice, ",")
 	hand2String := strings.Join(hand2Slice, ",")
@@ -94,17 +67,17 @@ func (h cardSortedHands) Less(i, j int) bool {
 	hand1Slice = strings.Split(hand1String, ",")
 	hand2Slice = strings.Split(hand2String, ",")
 
-	for k := 0; k < len(hand1Slice); k++ {
-		if hand1Slice[k] == hand2Slice[k] {
-			continue
+	if h1.score == h2.score { //Same score i.e. FullHouse vs FullHouse
+		for k := 0; k < len(hand1Slice); k++ {
+			if hand1Slice[k] == hand2Slice[k] { //Same card value i.e. 3 vs 3
+				continue
+			}
+			return stringToNumber(hand1Slice[k]) > stringToNumber(hand2Slice[k])
 		}
-		return hand1Slice[k] > hand2Slice[k]
+		return true
+	} else {
+		return h1.score > h2.score
 	}
-	return false
-}
-
-func (h cardSortedHands) Swap(i, j int) {
-	h[i], h[j] = h[j], h[i]
 }
 
 func calculateHands(hands []*hand) {
