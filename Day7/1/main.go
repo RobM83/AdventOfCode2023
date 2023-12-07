@@ -18,7 +18,7 @@ type hand struct {
 }
 
 func main() {
-	input, _ := readLines("test.txt")
+	input, _ := readLines("test2.txt")
 	hands := parseInput(input)
 	calculateHands(hands)
 	calculateRank(hands)
@@ -41,7 +41,6 @@ func calculateRank(hands []*hand) {
 	scores := []int{}
 	scoreMap := make(map[int][]*hand)
 
-	//maxRank := len(hands)
 	for _, h := range hands {
 		if _, ok := scoreMap[h.score]; !ok {
 			scores = append(scores, h.score)
